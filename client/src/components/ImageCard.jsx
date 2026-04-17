@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { formatSize } from '../utils/format'
 import { IconTrash } from './Icons'
 
-export default function ImageCard({ image, onDelete }) {
+export default function ImageCard({ image, onDelete, onClick }) {
   const [confirming, setConfirming] = useState(false)
 
   const handleDelete = (e) => {
@@ -19,6 +19,7 @@ export default function ImageCard({ image, onDelete }) {
   return (
     <motion.div
       className="image-card"
+      onClick={onClick}
       whileHover={{ y: -3, boxShadow: '0 8px 24px rgba(0,0,0,0.15)' }}
       transition={{ type: 'spring', stiffness: 360, damping: 28 }}
       layout
@@ -35,11 +36,10 @@ export default function ImageCard({ image, onDelete }) {
         onClick={handleDelete}
         title={confirming ? 'Click again to confirm' : 'Delete image'}
       >
-        {confirming ? (
-          <span style={{ fontSize: 11, fontWeight: 500 }}>Confirm?</span>
-        ) : (
-          <IconTrash size={13} />
-        )}
+        {confirming
+          ? <span style={{ fontSize: 10.5, fontWeight: 500 }}>Confirm?</span>
+          : <IconTrash size={13} />
+        }
       </button>
     </motion.div>
   )

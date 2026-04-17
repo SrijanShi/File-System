@@ -12,33 +12,29 @@ const buildFolderResponse = async (folder, ownerId) => {
 
 const createFolder = async (req, res, next) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'Thumbnail image is required' });
-    }
-
     const { name, parentId } = req.body;
 
     if (!name || !name.trim()) {
-      fs.unlink(req.file.path, () => {});
+      if (req.file) fs.unlink(req.file.path, () => {});
       return res.status(400).json({ error: 'Folder name is required' });
     }
 
     if (parentId) {
       const parent = await Folder.findOne({ _id: parentId, owner: req.user._id });
       if (!parent) {
-        fs.unlink(req.file.path, () => {});
+        if (req.file) fs.unlink(req.file.path, () => {});
         return res.status(403).json({ error: 'Parent folder not found or access denied' });
       }
     }
 
     const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const thumbnail = req.file
+      ? { filename: req.file.filename, url: `${baseUrl}/uploads/${req.file.filename}`, size: req.file.size }
+      : { filename: null, url: null, size: 0 };
+
     const folder = await Folder.create({
       name: name.trim(),
-      thumbnail: {
-        filename: req.file.filename,
-        url: `${baseUrl}/uploads/${req.file.filename}`,
-        size: req.file.size,
-      },
+      thumbnail,
       parent: parentId || null,
       owner: req.user._id,
     });
@@ -175,7 +171,7 @@ const deleteFolder = async (req, res, next) => {
     // Unlink folder thumbnails
     const folders = await Folder.find({ _id: { $in: allFolderIds } }, 'thumbnail.filename');
     for (const f of folders) {
-      fs.unlink(path.join(UPLOADS_DIR, f.thumbnail.filename), () => {});
+      if (f.thumbnail?.filename) fs.unlink(path.join(UPLOADS_DIR, f.thumbnail.filename), () => {});
     }
 
     await Image.deleteMany({ folder: { $in: allFolderIds }, owner: req.user._id });

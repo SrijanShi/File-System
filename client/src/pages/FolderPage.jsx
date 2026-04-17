@@ -6,13 +6,11 @@ import FolderCard from '../components/FolderCard'
 import ImageCard from '../components/ImageCard'
 import CreateFolderModal from '../components/CreateFolderModal'
 import UploadModal from '../components/UploadModal'
-import ThemeToggle from '../components/ThemeToggle'
-import { IconPlus, IconUpload, IconFolder, IconImage, IconChevronRight, IconArrowLeft } from '../components/Icons'
+import ImageLightbox from '../components/ImageLightbox'
+import { IconPlus, IconUpload, IconFolder, IconChevronRight, IconArrowLeft } from '../components/Icons'
 import { formatSize } from '../utils/format'
 
-const container = {
-  animate: { transition: { staggerChildren: 0.05 } },
-}
+const container = { animate: { transition: { staggerChildren: 0.05 } } }
 
 const item = {
   initial: { opacity: 0, y: 14 },
@@ -20,18 +18,18 @@ const item = {
 }
 
 export default function FolderPage() {
-  const { id }       = useParams()
-  const navigate     = useNavigate()
-  const { state }    = useLocation()
+  const { id }    = useParams()
+  const navigate  = useNavigate()
+  const { state } = useLocation()
 
-  const [folder,      setFolder]      = useState(null)
-  const [subfolders,  setSubfolders]  = useState([])
-  const [images,      setImages]      = useState([])
-  const [loading,     setLoading]     = useState(true)
-  const [showCreate,  setShowCreate]  = useState(false)
-  const [showUpload,  setShowUpload]  = useState(false)
+  const [folder,     setFolder]     = useState(null)
+  const [subfolders, setSubfolders] = useState([])
+  const [images,     setImages]     = useState([])
+  const [loading,    setLoading]    = useState(true)
+  const [showCreate, setShowCreate] = useState(false)
+  const [showUpload, setShowUpload] = useState(false)
+  const [lightboxIdx, setLightboxIdx] = useState(null)   // index into images[]
 
-  // Breadcrumb path from nav state, fallback to just this folder
   const [breadPath, setBreadPath] = useState(state?.path || [])
 
   const load = async () => {
@@ -55,33 +53,23 @@ export default function FolderPage() {
 
   const handleFolderClick = (sub) => {
     navigate(`/folder/${sub._id}`, {
-      state: {
-        path: [...breadPath, { id: sub._id, name: sub.name }],
-      },
+      state: { path: [...breadPath, { id: sub._id, name: sub.name }] },
     })
   }
 
   const handleBreadNav = (idx) => {
-    if (idx === breadPath.length - 1) return // current
-    if (idx < 0) {
-      navigate('/drive')
-      return
-    }
+    if (idx === breadPath.length - 1) return
+    if (idx < 0) { navigate('/drive'); return }
     const target = breadPath[idx]
-    navigate(`/folder/${target.id}`, {
-      state: { path: breadPath.slice(0, idx + 1) },
-    })
+    navigate(`/folder/${target.id}`, { state: { path: breadPath.slice(0, idx + 1) } })
   }
 
-  const handleSubCreated = (newFolder) => {
-    setSubfolders((prev) => [newFolder, ...prev])
-  }
+  const handleSubCreated = (newFolder) => setSubfolders((prev) => [newFolder, ...prev])
 
   const handleUploaded = (newImages) => {
     setImages((prev) => [...newImages, ...prev])
-    // Update folder size locally
-    const addedSize = newImages.reduce((s, img) => s + img.size, 0)
-    setFolder((f) => f ? { ...f, size: (f.size || 0) + addedSize } : f)
+    const added = newImages.reduce((s, img) => s + img.size, 0)
+    setFolder((f) => f ? { ...f, size: (f.size || 0) + added } : f)
   }
 
   const handleDeleteImage = async (imageId) => {
@@ -89,9 +77,9 @@ export default function FolderPage() {
       await imagesAPI.remove(imageId)
       const removed = images.find((i) => i._id === imageId)
       setImages((prev) => prev.filter((i) => i._id !== imageId))
-      if (removed) {
-        setFolder((f) => f ? { ...f, size: Math.max(0, (f.size || 0) - removed.size) } : f)
-      }
+      if (removed) setFolder((f) => f ? { ...f, size: Math.max(0, (f.size || 0) - removed.size) } : f)
+      // close lightbox if the deleted image was open
+      if (lightboxIdx !== null) setLightboxIdx(null)
     } catch {}
   }
 
@@ -116,11 +104,8 @@ export default function FolderPage() {
         {/* Header */}
         <div className="page-header">
           <div className="page-header__left">
-            {/* Breadcrumb */}
             <div className="breadcrumb">
-              <button className="bc-item" onClick={() => handleBreadNav(-1)}>
-                My Drive
-              </button>
+              <button className="bc-item" onClick={() => handleBreadNav(-1)}>My Drive</button>
               {breadPath.map((crumb, idx) => (
                 <span key={crumb.id} style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <span className="bc-sep"><IconChevronRight /></span>
@@ -133,10 +118,7 @@ export default function FolderPage() {
                 </span>
               ))}
             </div>
-
-            <div className="page-title" style={{ marginTop: 6 }}>
-              {folder?.name}
-            </div>
+            <div className="page-title" style={{ marginTop: 6 }}>{folder?.name}</div>
             <div className="page-subtitle">
               {formatSize(folder?.size || 0)} total
               {subfolders.length > 0 && ` · ${subfolders.length} subfolder${subfolders.length !== 1 ? 's' : ''}`}
@@ -146,17 +128,13 @@ export default function FolderPage() {
 
           <div className="page-header__actions">
             <button className="btn btn-ghost" onClick={() => navigate(-1)}>
-              <IconArrowLeft size={14} />
-              Back
+              <IconArrowLeft size={14} /> Back
             </button>
-            <ThemeToggle />
             <button className="btn btn-secondary" onClick={() => setShowCreate(true)}>
-              <IconPlus size={14} />
-              Folder
+              <IconPlus size={14} /> Folder
             </button>
             <button className="btn btn-primary" onClick={() => setShowUpload(true)}>
-              <IconUpload size={14} />
-              Upload
+              <IconUpload size={14} /> Upload
             </button>
           </div>
         </div>
@@ -164,22 +142,12 @@ export default function FolderPage() {
         {/* Subfolders */}
         {subfolders.length > 0 && (
           <div className="section">
-            <div className="section-heading">
-              <span className="section-title">Folders</span>
-            </div>
-            <motion.div
-              className="grid"
-              variants={container}
-              initial="initial"
-              animate="animate"
-            >
+            <div className="section-heading"><span className="section-title">Folders</span></div>
+            <motion.div className="grid" variants={container} initial="initial" animate="animate">
               <AnimatePresence>
                 {subfolders.map((sf) => (
                   <motion.div key={sf._id} variants={item}>
-                    <FolderCard
-                      folder={sf}
-                      onClick={() => handleFolderClick(sf)}
-                    />
+                    <FolderCard folder={sf} onClick={() => handleFolderClick(sf)} />
                   </motion.div>
                 ))}
               </AnimatePresence>
@@ -190,21 +158,15 @@ export default function FolderPage() {
         {/* Images */}
         {images.length > 0 && (
           <div className="section">
-            <div className="section-heading">
-              <span className="section-title">Images</span>
-            </div>
-            <motion.div
-              className="grid"
-              variants={container}
-              initial="initial"
-              animate="animate"
-            >
+            <div className="section-heading"><span className="section-title">Images</span></div>
+            <motion.div className="grid" variants={container} initial="initial" animate="animate">
               <AnimatePresence>
-                {images.map((img) => (
+                {images.map((img, idx) => (
                   <motion.div key={img._id} variants={item}>
                     <ImageCard
                       image={img}
                       onDelete={handleDeleteImage}
+                      onClick={() => setLightboxIdx(idx)}
                     />
                   </motion.div>
                 ))}
@@ -215,25 +177,16 @@ export default function FolderPage() {
 
         {/* Empty state */}
         {subfolders.length === 0 && images.length === 0 && (
-          <motion.div
-            className="empty"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.15 }}
-          >
+          <motion.div className="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
             <div className="empty__icon"><IconFolder size={36} /></div>
             <div className="empty__title">This folder is empty</div>
-            <div className="empty__text">
-              Add subfolders or upload images to get started.
-            </div>
+            <div className="empty__text">Add subfolders or upload images to get started.</div>
             <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
               <button className="btn btn-secondary" onClick={() => setShowCreate(true)}>
-                <IconPlus size={14} />
-                New Folder
+                <IconPlus size={14} /> New Folder
               </button>
               <button className="btn btn-primary" onClick={() => setShowUpload(true)}>
-                <IconUpload size={14} />
-                Upload Images
+                <IconUpload size={14} /> Upload Images
               </button>
             </div>
           </motion.div>
@@ -242,20 +195,23 @@ export default function FolderPage() {
 
       <AnimatePresence>
         {showCreate && (
-          <CreateFolderModal
-            parentId={id}
-            onClose={() => setShowCreate(false)}
-            onCreated={handleSubCreated}
-          />
+          <CreateFolderModal parentId={id} onClose={() => setShowCreate(false)} onCreated={handleSubCreated} />
         )}
       </AnimatePresence>
 
       <AnimatePresence>
         {showUpload && (
-          <UploadModal
-            folderId={id}
-            onClose={() => setShowUpload(false)}
-            onUploaded={handleUploaded}
+          <UploadModal folderId={id} onClose={() => setShowUpload(false)} onUploaded={handleUploaded} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {lightboxIdx !== null && (
+          <ImageLightbox
+            images={images}
+            initialIndex={lightboxIdx}
+            onClose={() => setLightboxIdx(null)}
+            onDelete={handleDeleteImage}
           />
         )}
       </AnimatePresence>

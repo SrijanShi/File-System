@@ -4,6 +4,7 @@ import { ThemeProvider } from './context/ThemeContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
 import AuthPage from './pages/AuthPage'
+import OAuthCallbackPage from './pages/OAuthCallbackPage'
 import DashboardPage from './pages/DashboardPage'
 import FolderPage from './pages/FolderPage'
 
@@ -14,6 +15,7 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/auth/callback" element={<OAuthCallbackPage />} />
             <Route
               element={
                 <ProtectedRoute>

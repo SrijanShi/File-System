@@ -8,9 +8,9 @@ const folderSchema = new mongoose.Schema(
       trim: true,
     },
     thumbnail: {
-      filename: { type: String, required: true },
-      url: { type: String, required: true },
-      size: { type: Number, required: true },
+      filename: { type: String, default: null },
+      url:      { type: String, default: null },
+      size:     { type: Number, default: 0 },
     },
     parent: {
       type: mongoose.Schema.Types.ObjectId,

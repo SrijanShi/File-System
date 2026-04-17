@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { foldersAPI } from '../api'
 import FolderCard from '../components/FolderCard'
 import CreateFolderModal from '../components/CreateFolderModal'
-import ThemeToggle from '../components/ThemeToggle'
 import { IconPlus, IconFolder } from '../components/Icons'
 
 const container = {
@@ -59,7 +58,6 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="page-header__actions">
-            <ThemeToggle />
             <button
               className="btn btn-primary"
               onClick={() => setShowCreate(true)}

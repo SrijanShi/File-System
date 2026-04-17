@@ -28,6 +28,12 @@ export function AuthProvider({ children }) {
     setUser(data.user)
   }
 
+  const loginWithToken = (token, userData) => {
+    localStorage.setItem('token', token)
+    localStorage.setItem('user', JSON.stringify(userData))
+    setUser(userData)
+  }
+
   const logout = async () => {
     try { await authAPI.logout() } catch {}
     localStorage.removeItem('token')
@@ -36,7 +42,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, signup, loginWithToken, logout, loading }}>
       {children}
     </AuthContext.Provider>
   )
