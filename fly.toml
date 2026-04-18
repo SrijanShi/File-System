@@ -1,5 +1,7 @@
-app = "filesystem-srijan"
-primary_region = "sin"
+# fly.toml app configuration file generated for filesystem-srijan on 2026-04-18
+
+app = 'filesystem-srijan'
+primary_region = 'sin'
 
 [build]
 
@@ -10,14 +12,10 @@ primary_region = "sin"
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = "stop"
+  auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 0
-
-  [http_service.concurrency]
-    type = "connections"
-    hard_limit = 25
-    soft_limit = 20
+  processes = ['app']
 
 [[mounts]]
   source = "uploads_vol"
@@ -25,6 +23,6 @@ primary_region = "sin"
   initial_size = "1gb"
 
 [[vm]]
-  memory = "256mb"
-  cpu_kind = "shared"
+  memory = '1gb'
+  cpu_kind = 'shared'
   cpus = 1
