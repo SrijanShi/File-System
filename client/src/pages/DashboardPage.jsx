@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { foldersAPI } from '../api'
+import { useFolders } from '../context/FolderContext'
 import FolderCard from '../components/FolderCard'
 import CreateFolderModal from '../components/CreateFolderModal'
 import { IconPlus, IconFolder } from '../components/Icons'
@@ -16,23 +16,13 @@ const item = {
 }
 
 export default function DashboardPage() {
-  const [folders,    setFolders]    = useState([])
-  const [loading,    setLoading]    = useState(true)
+  const { folders, loading, addFolder } = useFolders()
   const [showCreate, setShowCreate] = useState(false)
   const navigate = useNavigate()
 
-  const load = async () => {
-    try {
-      const { data } = await foldersAPI.getRoot()
-      setFolders(data.folders)
-    } catch {}
-    finally { setLoading(false) }
-  }
-
-  useEffect(() => { load() }, [])
-
   const handleCreated = (folder) => {
-    setFolders((prev) => [folder, ...prev])
+    addFolder(folder)
+    setShowCreate(false)
   }
 
   const handleFolderClick = (folder) => {
@@ -58,10 +48,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="page-header__actions">
-            <button
-              className="btn btn-primary"
-              onClick={() => setShowCreate(true)}
-            >
+            <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
               <IconPlus size={14} />
               New Folder
             </button>
@@ -105,10 +92,7 @@ export default function DashboardPage() {
               <AnimatePresence>
                 {folders.map((f) => (
                   <motion.div key={f._id} variants={item}>
-                    <FolderCard
-                      folder={f}
-                      onClick={() => handleFolderClick(f)}
-                    />
+                    <FolderCard folder={f} onClick={() => handleFolderClick(f)} />
                   </motion.div>
                 ))}
               </AnimatePresence>

@@ -167,6 +167,24 @@ a { text-decoration: none; color: inherit; }
 
 .sidebar__item svg { flex-shrink: 0; }
 
+.sidebar__section-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  padding: 12px 12px 4px;
+}
+
+.sidebar__item--folder { padding-left: 12px; }
+
+.sidebar__folder-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
 .sidebar__divider { height: 1px; background: var(--border); margin: 6px 8px; }
 
 .sidebar__footer {

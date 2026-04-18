@@ -13,18 +13,6 @@ const field = {
   transition: { duration: 0.22, ease: [0.4, 0, 0.2, 1] },
 }
 
-// Google "G" SVG
-function GoogleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 48 48" style={{ flexShrink: 0 }}>
-      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-    </svg>
-  )
-}
-
 export default function AuthPage() {
   const [mode,     setMode]     = useState('login')   // 'login' | 'signup' | 'otp'
   const [name,     setName]     = useState('')
@@ -33,7 +21,7 @@ export default function AuthPage() {
   const [otp,      setOtp]      = useState(['', '', '', '', '', ''])
   const [error,    setError]    = useState('')
   const [loading,  setLoading]  = useState(false)
-  const [resendCd, setResendCd] = useState(0)         // countdown seconds
+  const [resendCd, setResendCd] = useState(0)
 
   const otpRefs = useRef([])
   const { login } = useAuth()
@@ -44,12 +32,10 @@ export default function AuthPage() {
   const isSignup = mode === 'signup'
   const isOtp    = mode === 'otp'
 
-  // Show oauth error if redirected back with ?error=oauth
   useEffect(() => {
-    if (params.get('error') === 'oauth') setError('Google sign-in failed. Please try again.')
+    if (params.get('error') === 'oauth') setError('Sign-in failed. Please try again.')
   }, [params])
 
-  // Resend cooldown timer
   useEffect(() => {
     if (resendCd <= 0) return
     const t = setTimeout(() => setResendCd((c) => c - 1), 1000)
@@ -60,7 +46,6 @@ export default function AuthPage() {
 
   const switchMode = (m) => { setMode(m); reset() }
 
-  // ── Standard login ──────────────────────────────────────────────
   const handleLogin = async (e) => {
     e.preventDefault()
     setError(''); setLoading(true)
@@ -72,7 +57,6 @@ export default function AuthPage() {
     } finally { setLoading(false) }
   }
 
-  // ── Send OTP (signup step 1) ─────────────────────────────────────
   const handleSendOtp = async (e) => {
     e.preventDefault()
     setError(''); setLoading(true)
@@ -85,7 +69,6 @@ export default function AuthPage() {
     } finally { setLoading(false) }
   }
 
-  // ── Verify OTP (signup step 2) ───────────────────────────────────
   const handleVerifyOtp = async (e) => {
     e.preventDefault()
     const code = otp.join('')
@@ -101,7 +84,6 @@ export default function AuthPage() {
     } finally { setLoading(false) }
   }
 
-  // ── Resend OTP ───────────────────────────────────────────────────
   const handleResend = async () => {
     if (resendCd > 0) return
     setError(''); setLoading(true)
@@ -114,12 +96,9 @@ export default function AuthPage() {
     } finally { setLoading(false) }
   }
 
-  // ── OTP input handling ───────────────────────────────────────────
   const handleOtpChange = (i, val) => {
     if (!/^\d*$/.test(val)) return
-    const next = [...otp]
-    next[i] = val.slice(-1)
-    setOtp(next)
+    const next = [...otp]; next[i] = val.slice(-1); setOtp(next)
     if (val && i < 5) otpRefs.current[i + 1]?.focus()
   }
 
@@ -134,11 +113,6 @@ export default function AuthPage() {
     setOtp(next)
     otpRefs.current[Math.min(text.length, 5)]?.focus()
     e.preventDefault()
-  }
-
-  // ── Google OAuth ─────────────────────────────────────────────────
-  const handleGoogle = () => {
-    window.location.href = '/api/auth/google'
   }
 
   return (
@@ -158,14 +132,13 @@ export default function AuthPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.38, ease: [0.4, 0, 0.2, 1] }}
       >
-        {/* Brand */}
         <div className="auth-brand">
           <div className="auth-mark">FS</div>
           <span className="auth-brand-name">FileSystem</span>
         </div>
 
         <AnimatePresence mode="wait">
-          {/* ── OTP screen ── */}
+          {/* OTP verification screen */}
           {isOtp ? (
             <motion.div
               key="otp"
@@ -233,7 +206,7 @@ export default function AuthPage() {
             </motion.div>
 
           ) : (
-            /* ── Login / Signup screen ── */
+            /* Login / Signup screen */
             <motion.div
               key={mode}
               initial={{ opacity: 0, x: isSignup ? 8 : -8 }}
@@ -245,14 +218,6 @@ export default function AuthPage() {
               <div className="auth-subtitle">
                 {isSignup ? 'Sign up to start managing your files' : 'Sign in to your account to continue'}
               </div>
-
-              {/* Google button */}
-              <button type="button" className="btn-google" onClick={handleGoogle}>
-                <GoogleIcon />
-                Continue with Google
-              </button>
-
-              <div className="auth-divider"><span>or</span></div>
 
               <form className="auth-form" onSubmit={isSignup ? handleSendOtp : handleLogin}>
                 <AnimatePresence>

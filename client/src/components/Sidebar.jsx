@@ -1,11 +1,13 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
-import { IconHardDrive, IconLogOut } from './Icons'
+import { useFolders } from '../context/FolderContext'
+import { IconHardDrive, IconLogOut, IconFolder } from './Icons'
 import ThemeToggle from './ThemeToggle'
 
 export default function Sidebar() {
   const { user, logout } = useAuth()
+  const { folders } = useFolders()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
@@ -33,11 +35,37 @@ export default function Sidebar() {
       <nav className="sidebar__nav">
         <NavLink
           to="/drive"
+          end
           className={({ isActive }) => 'sidebar__item' + (isActive ? ' active' : '')}
         >
           <IconHardDrive size={15} />
           My Drive
         </NavLink>
+
+        {folders.length > 0 && (
+          <>
+            <div className="sidebar__section-label">Folders</div>
+            <AnimatePresence initial={false}>
+              {folders.map((f) => (
+                <motion.div
+                  key={f._id}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -8 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  <NavLink
+                    to={`/folder/${f._id}`}
+                    className={({ isActive }) => 'sidebar__item sidebar__item--folder' + (isActive ? ' active' : '')}
+                  >
+                    <IconFolder size={14} />
+                    <span className="sidebar__folder-name">{f.name}</span>
+                  </NavLink>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </>
+        )}
       </nav>
 
       <div className="sidebar__footer">
