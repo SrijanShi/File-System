@@ -19,9 +19,18 @@ app.use('/api/auth', authRoutes);
 app.use('/api/folders', folderRoutes);
 app.use('/api/images', imageRoutes);
 
-app.use((req, res) => {
-  res.status(404).json({ error: `Route ${req.method} ${req.originalUrl} not found` });
-});
+// In production, serve the React build
+if (process.env.NODE_ENV === 'production') {
+  const clientBuild = path.join(__dirname, '../public');
+  app.use(express.static(clientBuild));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(clientBuild, 'index.html'));
+  });
+} else {
+  app.use((req, res) => {
+    res.status(404).json({ error: `Route ${req.method} ${req.originalUrl} not found` });
+  });
+}
 
 app.use(errorHandler);
 
