@@ -1,0 +1,14 @@
+{
+  "name": "filesystem-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for FileSystem API — exposes folders and images as AI-callable tools",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.3.6"
+  }
+}
