@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useFolders } from '../context/FolderContext'
@@ -16,9 +16,12 @@ const item = {
 }
 
 export default function DashboardPage() {
-  const { folders, loading, addFolder } = useFolders()
+  const { folders, loading, addFolder, refresh } = useFolders()
   const [showCreate, setShowCreate] = useState(false)
   const navigate = useNavigate()
+
+  // Re-fetch sizes every time the user lands on the dashboard
+  useEffect(() => { refresh() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCreated = (folder) => {
     addFolder(folder)

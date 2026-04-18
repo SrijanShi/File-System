@@ -20,11 +20,13 @@ export function FolderProvider({ children }) {
 
   useEffect(() => { load() }, [load])
 
-  const addFolder   = (folder) => setFolders((prev) => [folder, ...prev])
-  const removeFolder = (id)   => setFolders((prev) => prev.filter((f) => f._id !== id))
+  const addFolder        = (folder) => setFolders((prev) => [folder, ...prev])
+  const removeFolder     = (id)    => setFolders((prev) => prev.filter((f) => f._id !== id))
+  const updateFolderSize = (id, delta) =>
+    setFolders((prev) => prev.map((f) => f._id === id ? { ...f, size: (f.size || 0) + delta } : f))
 
   return (
-    <FolderContext.Provider value={{ folders, loading, addFolder, removeFolder, refresh: load }}>
+    <FolderContext.Provider value={{ folders, loading, addFolder, removeFolder, updateFolderSize, refresh: load }}>
       {children}
     </FolderContext.Provider>
   )

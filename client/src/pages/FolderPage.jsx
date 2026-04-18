@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { foldersAPI, imagesAPI } from '../api'
+import { useFolders } from '../context/FolderContext'
 import FolderCard from '../components/FolderCard'
 import ImageCard from '../components/ImageCard'
 import CreateFolderModal from '../components/CreateFolderModal'
@@ -21,6 +22,7 @@ export default function FolderPage() {
   const { id }    = useParams()
   const navigate  = useNavigate()
   const { state } = useLocation()
+  const { updateFolderSize } = useFolders()
 
   const [folder,     setFolder]     = useState(null)
   const [subfolders, setSubfolders] = useState([])
@@ -70,6 +72,9 @@ export default function FolderPage() {
     setImages((prev) => [...newImages, ...prev])
     const added = newImages.reduce((s, img) => s + img.size, 0)
     setFolder((f) => f ? { ...f, size: (f.size || 0) + added } : f)
+    // Keep the root folder card size in sync for the root folder
+    const rootId = breadPath[0]?.id
+    if (rootId) updateFolderSize(rootId, added)
   }
 
   const handleDeleteImage = async (imageId) => {
@@ -77,8 +82,11 @@ export default function FolderPage() {
       await imagesAPI.remove(imageId)
       const removed = images.find((i) => i._id === imageId)
       setImages((prev) => prev.filter((i) => i._id !== imageId))
-      if (removed) setFolder((f) => f ? { ...f, size: Math.max(0, (f.size || 0) - removed.size) } : f)
-      // close lightbox if the deleted image was open
+      if (removed) {
+        setFolder((f) => f ? { ...f, size: Math.max(0, (f.size || 0) - removed.size) } : f)
+        const rootId = breadPath[0]?.id
+        if (rootId) updateFolderSize(rootId, -removed.size)
+      }
       if (lightboxIdx !== null) setLightboxIdx(null)
     } catch {}
   }
