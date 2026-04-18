@@ -34,14 +34,14 @@ const sendOtp = async (req, res, next) => {
 
     const code = String(Math.floor(100000 + Math.random() * 900000)); // 6-digit
     const hash = await bcrypt.hash(code, 10);
-    const hashedPassword = await bcrypt.hash(password, 12);
 
     // Remove any previous OTP for this email
     await Otp.deleteMany({ email: email.toLowerCase() });
 
+    // Store plaintext password — User.create() pre-save hook will hash it
     await Otp.create({
       email:    email.toLowerCase(),
-      userData: { name, password: hashedPassword },
+      userData: { name, password },
       hash,
     });
 

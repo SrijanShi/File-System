@@ -24,7 +24,7 @@ export default function AuthPage() {
   const [resendCd, setResendCd] = useState(0)
 
   const otpRefs = useRef([])
-  const { login } = useAuth()
+  const { login, loginWithToken } = useAuth()
   const { theme, toggle } = useTheme()
   const navigate = useNavigate()
   const [params] = useSearchParams()
@@ -76,8 +76,7 @@ export default function AuthPage() {
     setError(''); setLoading(true)
     try {
       const { data } = await authAPI.verifyOtp({ email: email.trim(), code })
-      localStorage.setItem('token', data.token)
-      localStorage.setItem('user', JSON.stringify(data.user))
+      loginWithToken(data.token, data.user)
       navigate('/drive', { replace: true })
     } catch (err) {
       setError(err.response?.data?.error || 'Invalid code')
